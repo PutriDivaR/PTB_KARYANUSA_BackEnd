@@ -9,6 +9,8 @@ Route::get('/', function () {
 });
 
 use App\Http\Controllers\AdminKursusController;
+use App\Http\Controllers\Api\AuthController;
+
 
 // link untuk admin daftar kursus
 Route::prefix('admin')->group(function () {
@@ -21,12 +23,7 @@ Route::prefix('admin')->group(function () {
 
 });
 
-// link json API
-Route::prefix('api')->group(function () {
-    Route::get('/courses', [AdminKursusController::class, 'apiIndex']);
-    Route::get('/courses/{id}', [AdminKursusController::class, 'apiShow']);
-    Route::get('/materi/{kursus_id}', [AdminKursusController::class, 'apiMateri']);
-});
+
 
 // link untuk cek thumbnail
 Route::get('/thumbnail/{filename}', function ($filename) {
