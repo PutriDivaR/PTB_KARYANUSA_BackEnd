@@ -16,8 +16,15 @@ class AdminKursusController extends Controller
     public function apiIndex()
     {
         $kursus = Kursus::all();
+        $kursus->transform(function ($item) {
+            if ($item->thumbnail) {
+                $item->thumbnail = asset('storage/thumbnails/' . $item->thumbnail);
+            }
+            return $item;
+        });
         return response()->json($kursus);
     }
+
 
     // ini API json untuk Android – tampilkan detail kursus by ID
     public function apiShow($id)
@@ -31,6 +38,14 @@ class AdminKursusController extends Controller
     public function apiMateri($kursus_id)
     {
         $materi = Materi::where('kursus_id', $kursus_id)->get();
+
+        // Ubah field video dan tambahkan URL lengkap
+        $materi->transform(function ($item) {
+            if ($item->video) {
+                $item->video = asset('storage/videos/' . $item->video);
+            }
+            return $item;
+        });
 
         return response()->json($materi);
     }
