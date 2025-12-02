@@ -13,13 +13,13 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'username' => 'required|string|max:255|unique:users',
             'password' => 'required|string|min:4',
         ]);
 
         $user = User::create([
             'nama' => $validated['nama'],
-            'email' => $validated['email'],
+            'username' => $validated['username'],
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -32,10 +32,10 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        if (!Auth::attempt($request->only('username', 'password'))) {
             return response()->json([
                 'status' => false,
-                'message' => 'Email atau password salah'
+                'message' => 'username atau password salah'
             ], 401);
         }
 
