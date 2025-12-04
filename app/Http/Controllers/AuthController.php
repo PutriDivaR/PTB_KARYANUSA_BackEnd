@@ -61,4 +61,16 @@ class AuthController extends Controller
     {
         return response()->json($request->user());
     }
+
+    public function searchUser(Request $request)
+    {
+        $keyword = $request->query('username');
+
+        $users = User::where('username', 'like', "%$keyword%")
+            ->limit(10)
+            ->get(['user_id', 'nama', 'username']);
+
+        return response()->json($users);
+    }
+
 }

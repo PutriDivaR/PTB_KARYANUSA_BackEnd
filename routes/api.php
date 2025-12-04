@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminKursusController;
 use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\NotifikasiController;
 
 // AUTH
 Route::post('/register', [AuthController::class, 'register']);
@@ -19,6 +20,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/materi/complete', [EnrollmentController::class, 'tandaiMateriSelesai']);
     Route::get('/materi/{enrollmentId}/{materiId}/is-completed', [EnrollmentController::class, 'cekMateriSelesai']);
 
+    Route::get('/notifikasi', [NotifikasiController::class, 'getUserNotif']);
+    Route::post('/notifikasi/read/{id}', [NotifikasiController::class, 'markRead']);
+
 });
 
 // KURSUS
@@ -26,5 +30,8 @@ Route::get('/courses', [AdminKursusController::class, 'apiIndex']);
 Route::get('/courses/{id}', [AdminKursusController::class, 'apiShow']);
 Route::get('/materi/{kursus_id}', [AdminKursusController::class, 'apiMateri']);
 
+// notif share kursus
+Route::get('/users/search', [AuthController::class, 'searchUser']);
+Route::post('/notifikasi/send', [NotifikasiController::class, 'send']);
 
 
