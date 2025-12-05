@@ -46,7 +46,7 @@ class AuthController extends Controller
             'status' => true,
             'message' => 'Login berhasil',
             'token' => $token,
-            'user_id' => $user->id,
+            'user_id' =>  $user->user_id,
             'nama' => $user->nama,
         ]);
     }
@@ -72,5 +72,17 @@ class AuthController extends Controller
 
         return response()->json($users);
     }
+
+    public function getAllUsers(Request $request)
+{
+    $currentUserId = $request->user()->id;
+
+    $users = User::where('user_id', '!=', $currentUserId)
+                 ->select('user_id', 'username')
+                 ->get();
+
+    return response()->json($users, 200);
+}
+
 
 }

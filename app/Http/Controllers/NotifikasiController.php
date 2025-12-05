@@ -5,40 +5,47 @@ namespace App\Http\Controllers;
 use App\Models\Notifikasi;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class NotifikasiController extends Controller
 {
     // Kirim notifikasi (share kursus)
-    public function send(Request $request)
-    {
-        $request->validate([
-            'from_user' => 'required|exists:users,user_id',
-            'to_user' => 'required|exists:users,user_id',
-            'type' => 'required|string',
-            'title' => 'required|string',
-            'message' => 'required|string',
-            'related_id' => 'nullable|integer'
+public function sendNotification(Request $request)
+{
+    $request->validate([
+        'from_user' => 'required|integer',
+        'to_user' => 'required|integer',
+        'type' => 'required|string',
+        'title' => 'required|string',
+        'message' => 'required|string',
+        'related_id' => 'nullable|integer'
+    ]);
+
+    try {
+        $notif = Notifikasi::create([
+            'from_user' => $request->from_user,
+            'to_user' => $request->to_user,
+            'type' => $request->type,
+            'title' => $request->title,
+            'message' => $request->message,
+            'related_id' => $request->related_id,
+            'is_read' => false
         ]);
-
-        // Simpan ke database
-        $notif = Notifikasi::create($request->all());
-
-        // Kirim FCM ke user tujuan
-        $user = User::find($request->to_user);
-
-        if ($user && $user->fcm_token) {
-            $this->sendFCM(
-                $user->fcm_token,
-                $request->title,
-                $request->message
-            );
-        }
 
         return response()->json([
             'success' => true,
-            'notif' => $notif
-        ]);
+            'data' => $notif
+        ], 201);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
+
 
     // Ambil notifikasi user login
     public function getUserNotif(Request $request)
