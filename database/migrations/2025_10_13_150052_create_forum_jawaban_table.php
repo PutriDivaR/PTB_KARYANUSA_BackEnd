@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id('jawaban_id');
             $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
             $table->foreignId('pertanyaan_id')->constrained('forum_pertanyaan', 'pertanyaan_id')->onDelete('cascade');
+            $table->string('image_jawaban')->nullable(); // ✅ Tambah field untuk gambar jawaban
             $table->text('isi');
             $table->dateTime('tanggal')->useCurrent();
             $table->timestamps();
         });
     }
-
 
     /**
      * Reverse the migrations.

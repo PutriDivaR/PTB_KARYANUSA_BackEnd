@@ -14,13 +14,12 @@ return new class extends Migration
         Schema::create('forum_pertanyaan', function (Blueprint $table) {
             $table->id('pertanyaan_id');
             $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
-            $table->string('judul', 150);
-            $table->text('isi');
+            $table->string('image_forum')->nullable(); // ✅ Tambah field untuk gambar
+            $table->text('isi'); // ✅ Hapus 'judul', karena tidak ada di model & controller
             $table->dateTime('tanggal')->useCurrent();
             $table->timestamps();
         });
     }
-
 
     /**
      * Reverse the migrations.
