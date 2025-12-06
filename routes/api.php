@@ -5,10 +5,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminKursusController;
 use App\Http\Controllers\EnrollmentController;
+
 use App\Http\Controllers\KaryaController;
 use App\Http\Controllers\ForumPertanyaanController;
 use App\Http\Controllers\ProfileController;
-
 
 // AUTH
 Route::post('/register', [AuthController::class, 'register']);
@@ -24,7 +24,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/materi/complete', [EnrollmentController::class, 'tandaiMateriSelesai']);
     Route::get('/materi/{enrollmentId}/{materiId}/is-completed', [EnrollmentController::class, 'cekMateriSelesai']);
 
-     // galeri authI
+    // galeri authI
     Route::post('/karya/upload', [KaryaController::class, 'store']);
     Route::get('/karya/my', [KaryaController::class, 'my']);
     Route::delete('/karya/{id}', [KaryaController::class, 'destroy']);
@@ -37,6 +37,8 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/profile/{id}', [ProfileController::class, 'show']);
     Route::put('/profile/{id}', [ProfileController::class, 'update']);
+    Route::get('/users', [AuthController::class, 'getAllUsers']);
+
 });
 
 // KURSUS
@@ -44,6 +46,8 @@ Route::get('/courses', [AdminKursusController::class, 'apiIndex']);
 Route::get('/courses/{id}', [AdminKursusController::class, 'apiShow']);
 Route::get('/materi/{kursus_id}', [AdminKursusController::class, 'apiMateri']);
 
+
 //punya nya galeri nich
 Route::get('/karya', [KaryaController::class, 'index']);
 Route::post('/karya/{id}/view', [KaryaController::class, 'incrementView']);
+

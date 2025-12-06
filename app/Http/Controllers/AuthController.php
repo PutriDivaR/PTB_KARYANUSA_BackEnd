@@ -13,13 +13,13 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'username' => 'required|string|max:255|unique:users',
             'password' => 'required|string|min:4',
         ]);
 
         $user = User::create([
             'nama' => $validated['nama'],
-            'email' => $validated['email'],
+            'username' => $validated['username'],
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -32,10 +32,10 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        if (!Auth::attempt($request->only('username', 'password'))) {
             return response()->json([
                 'status' => false,
-                'message' => 'Email atau password salah'
+                'message' => 'username atau password salah'
             ], 401);
         }
 
@@ -46,7 +46,7 @@ class AuthController extends Controller
             'status' => true,
             'message' => 'Login berhasil',
             'token' => $token,
-            'user_id' => $user->id,
+            'user_id' =>  $user->user_id,
             'nama' => $user->nama,
         ]);
     }
@@ -61,4 +61,28 @@ class AuthController extends Controller
     {
         return response()->json($request->user());
     }
+
+    public function searchUser(Request $request)
+    {
+        $keyword = $request->query('username');
+
+        $users = User::where('username', 'like', "%$keyword%")
+            ->limit(10)
+            ->get(['user_id', 'nama', 'username']);
+
+        return response()->json($users);
+    }
+
+    public function getAllUsers(Request $request)
+{
+    $currentUserId = $request->user()->id;
+
+    $users = User::where('user_id', '!=', $currentUserId)
+                 ->select('user_id', 'username')
+                 ->get();
+
+    return response()->json($users, 200);
+}
+
+
 }
