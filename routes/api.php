@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifikasi/read/{id}', [NotifikasiController::class, 'markRead']);
     Route::get('/users', [AuthController::class, 'getAllUsers']);
     Route::post('/notifikasi/send', [NotifikasiController::class, 'sendNotification']);
+    Route::post('/users/fcm-token', [AuthController::class, 'updateFcmToken']);
 });
 
 // KURSUS
