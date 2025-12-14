@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use App\Models\Notifikasi;
+use App\Models\User;
+use App\Http\Controllers\NotifikasiController;
 
 class KaryaController extends Controller
 {
@@ -17,14 +21,11 @@ class KaryaController extends Controller
             'gambar'    => 'required|image|mimes:jpg,png,jpeg|max:4096',
         ]);
 
-        // ✅ Ambil user dari token
         $user = $request->user();
-
-        // Simpan file
         $path = $request->file('gambar')->store('karya', 'public');
 
         DB::table('galeri')->insert([
-            'user_id'        => $user->user_id, // ✅ Pakai user_id dari token
+            'user_id'        => $user->user_id,
             'judul'          => $request->nama,
             'caption'        => $request->deskripsi,
             'gambar'         => $path,
@@ -58,11 +59,10 @@ class KaryaController extends Controller
     // ✅ Get Karya Pribadi (filter berdasarkan user yang login)
     public function my(Request $request)
     {
-        // ✅ Ambil user dari token
         $user = $request->user();
 
         $data = DB::table('galeri')
-            ->where('user_id', $user->user_id) // ✅ Filter by user_id dari token
+            ->where('user_id', $user->user_id)
             ->orderBy('galeri_id', 'DESC')
             ->get();
 
@@ -75,12 +75,11 @@ class KaryaController extends Controller
     // ✅ Delete Karya (hanya milik user sendiri)
     public function destroy(Request $request, $id)
     {
-        // ✅ Ambil user dari token
         $user = $request->user();
 
         $karya = DB::table('galeri')
             ->where('galeri_id', $id)
-            ->where('user_id', $user->user_id) // ✅ Pastikan karya milik user
+            ->where('user_id', $user->user_id)
             ->first();
 
         if (!$karya) {
@@ -90,7 +89,6 @@ class KaryaController extends Controller
             ], 404);
         }
 
-        // Hapus file gambar
         if ($karya->gambar && Storage::disk('public')->exists($karya->gambar)) {
             Storage::disk('public')->delete($karya->gambar);
         }
@@ -111,10 +109,8 @@ class KaryaController extends Controller
             'deskripsi' => 'required'
         ]);
 
-        // ✅ Ambil user dari token
         $user = $request->user();
 
-        // ✅ Cek apakah karya milik user
         $karya = DB::table('galeri')
             ->where('galeri_id', $id)
             ->where('user_id', $user->user_id)
@@ -141,7 +137,7 @@ class KaryaController extends Controller
         ]);
     }
 
-    // ✅ Increment View (publik, tidak perlu auth)
+    // ✅ Increment View dengan Notifikasi FCM (FIXED)
     public function incrementView($id)
     {
         $karya = DB::table('galeri')->where('galeri_id', $id)->first();
@@ -153,13 +149,65 @@ class KaryaController extends Controller
             ], 404);
         }
 
+        $oldViews = $karya->views ?? 0;
+        $updatedViews = $oldViews + 1;
+
+        // 🔥 Increment view
         DB::table('galeri')
             ->where('galeri_id', $id)
-            ->increment('views');
+            ->update(['views' => $updatedViews]);
 
-        $updatedViews = DB::table('galeri')
-            ->where('galeri_id', $id)
-            ->value('views');
+        Log::info("View incremented for karya {$id}: {$oldViews} -> {$updatedViews}");
+
+        // 🔥 KIRIM NOTIFIKASI PADA MILESTONE TERTENTU
+        $milestones = [10, 25, 50, 100, 500, 1000];
+        
+        if (in_array($updatedViews, $milestones)) {
+            Log::info("Milestone reached: {$updatedViews} views for karya {$id}");
+            
+            $uploader = User::find($karya->user_id);
+
+            if ($uploader) {
+                try {
+                    // Simpan notifikasi ke database
+                    $notif = Notifikasi::create([
+                        'from_user' => 0, // System notification
+                        'to_user' => $uploader->user_id,
+                        'type' => 'view_milestone',
+                        'title' => '🎉 Karya Anda Populer!',
+                        'message' => "Karya '{$karya->judul}' telah dilihat {$updatedViews} kali!",
+                        'related_id' => $karya->galeri_id,
+                        'is_read' => false
+                    ]);
+
+                    Log::info("Notifikasi created: ", $notif->toArray());
+
+                    // Kirim FCM jika token tersedia
+                    if (!empty($uploader->fcm_token)) {
+                        Log::info("Sending FCM to token: {$uploader->fcm_token}");
+                        
+                        $notifController = app(NotifikasiController::class);
+                        $result = $notifController->sendFCMV1(
+                            $uploader->fcm_token,
+                            '🎉 Karya Anda Populer!',
+                            "Karya '{$karya->judul}' telah dilihat {$updatedViews} kali!"
+                        );
+
+                        if ($result) {
+                            Log::info("FCM sent successfully for karya {$id}");
+                        } else {
+                            Log::error("FCM failed for karya {$id}");
+                        }
+                    } else {
+                        Log::warning("User {$uploader->user_id} has no FCM token");
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Error sending notification: " . $e->getMessage());
+                }
+            } else {
+                Log::warning("Uploader not found for karya {$id}");
+            }
+        }
 
         return response()->json([
             'status' => true,

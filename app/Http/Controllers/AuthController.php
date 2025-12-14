@@ -74,15 +74,22 @@ class AuthController extends Controller
     }
 
     public function getAllUsers(Request $request)
-{
-    $currentUserId = $request->user()->id;
+    {
+        $currentUserId = $request->user()->id;
 
-    $users = User::where('user_id', '!=', $currentUserId)
-                 ->select('user_id', 'username')
-                 ->get();
+        $users = User::where('user_id', '!=', $currentUserId)
+                    ->select('user_id', 'username')
+                    ->get();
 
-    return response()->json($users, 200);
-}
+        return response()->json($users, 200);
+    }
 
+    public function updateFcmToken(Request $request) {
+        $user = $request->user();
+        $request->validate(['fcm_token' => 'nullable|string']);
+        $user->fcm_token = $request->fcm_token;
+        $user->save();
+        return response()->json(['success' => true]);
+    }
 
 }
