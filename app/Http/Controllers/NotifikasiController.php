@@ -61,16 +61,34 @@ public function sendNotification(Request $request)
 
 
     // Ambil notifikasi user login
-    public function getUserNotif(Request $request)
+public function getUserNotif(Request $request)
     {
         $user = $request->user();
 
-        $notif = Notifikasi::where('to_user', $user->user_id)
+        \Log::info("AUTH USER CHECK", [
+            'user' => $user
+        ]);
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $notif = Notifikasi::where('to_user', intval($user->user_id))
             ->orderBy('created_at', 'desc')
             ->get();
 
+            \Log::info("NOTIF QUERY", [
+            'user_id' => $user->user_id,
+            'count' => $notif->count(),
+            'data' => $notif
+        ]);
+
+
         return response()->json($notif);
     }
+
 
     // Tandai notification sebagai read
     public function markRead($id)
@@ -132,5 +150,4 @@ private function sendFCM($token, $title, $body)
 
         curl_close($ch);
     }
-
 }
