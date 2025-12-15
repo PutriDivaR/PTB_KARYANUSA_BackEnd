@@ -34,7 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pertanyaan', [ForumPertanyaanController::class, 'store']);
     Route::get('/pertanyaan', [ForumPertanyaanController::class, 'index']);
     Route::post('/pertanyaan/{id}/jawaban', [ForumPertanyaanController::class, 'jawaban']);
-    Route::post('/pertanyaan/{id}/update', [ForumPertanyaanController::class, 'update']); // ✅ Ubah jadi POST dengan /update
+    Route::post('/pertanyaan/{id}/update', [ForumPertanyaanController::class, 'update']); 
     Route::delete('/pertanyaan/{id}', [ForumPertanyaanController::class, 'destroy']);
     Route::get('/pertanyaan/{id}', [ForumPertanyaanController::class, 'show']);
     
@@ -43,14 +43,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users', [AuthController::class, 'getAllUsers']);
 
     Route::get('/notifikasi', [NotifikasiController::class, 'getUserNotif']);
-    Route::post('/notifikasi/read/{id}', [NotifikasiController::class, 'markRead']);
+    Route::post('/notifikasi/{id}/read', [NotifikasiController::class, 'markRead']);
     Route::get('/users', [AuthController::class, 'getAllUsers']);
     Route::post('/notifikasi/send', [NotifikasiController::class, 'sendNotification']);
     Route::post('/users/fcm-token', [AuthController::class, 'updateFcmToken']);
-<<<<<<< HEAD
 
-=======
->>>>>>> 6571d6c8f9783e3586dd2d8831e6dbcf5d5b0969
 });
 
 // KURSUS
