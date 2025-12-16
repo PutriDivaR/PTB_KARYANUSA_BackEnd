@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
-use App\Models\Notifikasi;
-use App\Models\User;
-use App\Http\Controllers\NotifikasiController;
 
 class KaryaController extends Controller
 {
-    // ✅ Upload Karya (pakai user dari token)
+    private NotifikasiController $notif;
+
+    public function __construct(NotifikasiController $notif)
+    {
+        $this->notif = $notif;
+    }
+
+    // ✅ Upload Karya
     public function store(Request $request)
     {
         $request->validate([
@@ -41,7 +45,7 @@ class KaryaController extends Controller
         ]);
     }
 
-    // ✅ Get Semua Karya (publik)
+    // ✅ Get Semua Karya
     public function index()
     {
         $data = DB::table('galeri')
@@ -56,7 +60,7 @@ class KaryaController extends Controller
         ]);
     }
 
-    // ✅ Get Karya Pribadi (filter berdasarkan user yang login)
+    // ✅ Get Karya Pribadi
     public function my(Request $request)
     {
         $user = $request->user();
@@ -72,7 +76,7 @@ class KaryaController extends Controller
         ]);
     }
 
-    // ✅ Delete Karya (hanya milik user sendiri)
+    // ✅ Delete Karya
     public function destroy(Request $request, $id)
     {
         $user = $request->user();
@@ -101,7 +105,7 @@ class KaryaController extends Controller
         ]);
     }
 
-    // ✅ Update Karya (hanya milik user sendiri)
+    // ✅ Update Karya
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -137,82 +141,101 @@ class KaryaController extends Controller
         ]);
     }
 
-    // ✅ Increment View dengan Notifikasi FCM (FIXED)
+    /**
+     * ✅ Increment View dengan Notifikasi Milestone
+     */
     public function incrementView($id)
     {
-        $karya = DB::table('galeri')->where('galeri_id', $id)->first();
+        \Log::info("🔥 INCREMENT VIEW START", [
+            'galeri_id' => $id,
+            'time' => now()->toDateTimeString()
+        ]);
 
-        if (!$karya) {
+        try {
+            $karya = DB::table('galeri')->where('galeri_id', $id)->first();
+
+            if (!$karya) {
+                \Log::error("KARYA_NOT_FOUND", ['galeri_id' => $id]);
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Karya tidak ditemukan'
+                ], 404);
+            }
+
+            $oldViews = $karya->views ?? 0;
+
+            // ✅ Increment views
+            DB::table('galeri')
+                ->where('galeri_id', $id)
+                ->update([
+                    'views' => DB::raw('views + 1'),
+                    'updated_at' => now()
+                ]);
+
+            $newViews = $oldViews + 1;
+
+            \Log::info("VIEW_INCREMENT", [
+                'galeri_id' => $id,
+                'old_views' => $oldViews,
+                'new_views' => $newViews,
+                'user_id' => $karya->user_id
+            ]);
+
+            // ✅ Milestone check
+            $milestones = [5, 10, 25, 50, 100, 250, 500, 1000];
+            
+            $message = 'View berhasil ditambahkan';
+            $isMilestone = false;
+
+            if (in_array($newViews, $milestones)) {
+                $message = "🎉 Milestone tercapai: {$newViews} views!";
+                $isMilestone = true;
+                
+                \Log::info("🎉 MILESTONE TERCAPAI!", [
+                    'galeri_id' => $id,
+                    'views' => $newViews,
+                    'judul' => $karya->judul,
+                    'owner_user_id' => $karya->user_id
+                ]);
+                
+                // 🔥 KIRIM NOTIFIKASI VIA NotifikasiController
+                // ⚠️ GUNAKAN user_id KARYA SEBAGAI from_user (bukan 0/null)
+                $result = $this->notif->sendSystemNotification(
+                    fromUser: $karya->user_id, // ✅ PERBAIKAN: gunakan owner karya
+                    toUser: $karya->user_id,
+                    type: 'view_milestone',
+                    title: '🎉 Karya Anda Populer!',
+                    message: "Karya \"{$karya->judul}\" telah mencapai {$newViews} views!",
+                    relatedId: $id
+                );
+
+                \Log::info("NOTIF_SENT_RESULT", ['success' => $result]);
+            }
+
+            \Log::info("🔥 INCREMENT VIEW END", [
+                'galeri_id' => $id,
+                'final_views' => $newViews,
+                'time' => now()->toDateTimeString()
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => $message,
+                'views' => $newViews,
+                'milestone' => $isMilestone
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error("ERROR_INCREMENT_VIEW", [
+                'galeri_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'status' => false,
-                'message' => 'Karya tidak ditemukan'
-            ], 404);
+                'message' => 'Gagal menambah view: ' . $e->getMessage()
+            ], 500);
         }
-
-        $oldViews = $karya->views ?? 0;
-        $updatedViews = $oldViews + 1;
-
-        // 🔥 Increment view
-        DB::table('galeri')
-            ->where('galeri_id', $id)
-            ->update(['views' => $updatedViews]);
-
-        Log::info("View incremented for karya {$id}: {$oldViews} -> {$updatedViews}");
-
-        // 🔥 KIRIM NOTIFIKASI PADA MILESTONE TERTENTU
-        $milestones = [10, 25, 50, 100, 500, 1000];
-        
-        if (in_array($updatedViews, $milestones)) {
-            Log::info("Milestone reached: {$updatedViews} views for karya {$id}");
-            
-            $uploader = User::find($karya->user_id);
-
-            if ($uploader) {
-                try {
-                    // Simpan notifikasi ke database
-                    $notif = Notifikasi::create([
-                        'from_user' => 0, // System notification
-                        'to_user' => $uploader->user_id,
-                        'type' => 'view_milestone',
-                        'title' => '🎉 Karya Anda Populer!',
-                        'message' => "Karya '{$karya->judul}' telah dilihat {$updatedViews} kali!",
-                        'related_id' => $karya->galeri_id,
-                        'is_read' => false
-                    ]);
-
-                    Log::info("Notifikasi created: ", $notif->toArray());
-
-                    // Kirim FCM jika token tersedia
-                    if (!empty($uploader->fcm_token)) {
-                        Log::info("Sending FCM to token: {$uploader->fcm_token}");
-                        
-                        $notifController = app(NotifikasiController::class);
-                        $result = $notifController->sendFCMV1(
-                            $uploader->fcm_token,
-                            '🎉 Karya Anda Populer!',
-                            "Karya '{$karya->judul}' telah dilihat {$updatedViews} kali!"
-                        );
-
-                        if ($result) {
-                            Log::info("FCM sent successfully for karya {$id}");
-                        } else {
-                            Log::error("FCM failed for karya {$id}");
-                        }
-                    } else {
-                        Log::warning("User {$uploader->user_id} has no FCM token");
-                    }
-                } catch (\Exception $e) {
-                    Log::error("Error sending notification: " . $e->getMessage());
-                }
-            } else {
-                Log::warning("Uploader not found for karya {$id}");
-            }
-        }
-
-        return response()->json([
-            'status' => true,
-            'message' => 'View berhasil ditambahkan',
-            'views' => $updatedViews
-        ]);
     }
 }
