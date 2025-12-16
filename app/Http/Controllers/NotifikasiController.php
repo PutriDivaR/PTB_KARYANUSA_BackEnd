@@ -10,7 +10,11 @@ use Google\Client;
 class NotifikasiController extends Controller
 {
     // ================================
+<<<<<<< HEAD
     // 1️⃣ KIRIM NOTIFIKASI (dari user ke user)
+=======
+    // 1️⃣ KIRIM NOTIFIKASI 
+>>>>>>> 9af360746113143840e4876874acf83933dad007
     // ================================
     public function sendNotification(Request $request)
     {
@@ -35,31 +39,40 @@ class NotifikasiController extends Controller
                 'is_read' => 0
             ]);
 
+<<<<<<< HEAD
             \Log::info("NOTIF_CREATED", [
                 'notif_id' => $notif->notif_id,
                 'type' => $notif->type,
                 'to_user' => $notif->to_user
             ]);
 
+=======
+>>>>>>> 9af360746113143840e4876874acf83933dad007
             // Kirim FCM
             $toUser = User::find($request->to_user);
 
             if ($toUser && $toUser->fcm_token) {
+<<<<<<< HEAD
                 \Log::info("SENDING_FCM", [
                     'to_user' => $toUser->user_id,
                     'token_preview' => substr($toUser->fcm_token, 0, 20) . '...'
                 ]);
                 
+=======
+>>>>>>> 9af360746113143840e4876874acf83933dad007
                 $this->sendFCM(
                     $toUser->fcm_token,
                     $notif
                 );
+<<<<<<< HEAD
             } else {
                 \Log::warning("FCM_TOKEN_NOT_FOUND", [
                     'to_user' => $request->to_user,
                     'has_user' => !!$toUser,
                     'has_token' => $toUser ? !!$toUser->fcm_token : false
                 ]);
+=======
+>>>>>>> 9af360746113143840e4876874acf83933dad007
             }
 
             return response()->json([
@@ -68,11 +81,14 @@ class NotifikasiController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
+<<<<<<< HEAD
             \Log::error("NOTIF_SEND_ERROR", [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
+=======
+>>>>>>> 9af360746113143840e4876874acf83933dad007
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage()
@@ -81,6 +97,7 @@ class NotifikasiController extends Controller
     }
 
     // ================================
+<<<<<<< HEAD
     // ✅ KIRIM NOTIFIKASI SISTEM
     // ⚠️ PERBAIKAN: Tambah parameter fromUser
     // ================================
@@ -145,6 +162,8 @@ class NotifikasiController extends Controller
     }
 
     // ================================
+=======
+>>>>>>> 9af360746113143840e4876874acf83933dad007
     // 2️⃣ AMBIL NOTIFIKASI USER LOGIN
     // ================================
     public function getUserNotif(Request $request)
@@ -208,6 +227,7 @@ class NotifikasiController extends Controller
 
             $accessToken = $client->getAccessToken()['access_token'];
 
+<<<<<<< HEAD
             $projectId = json_decode(
                 file_get_contents($credentialsPath),
                 true
@@ -230,11 +250,24 @@ class NotifikasiController extends Controller
                         "related_id" => (string) ($notif->related_id ?? ''),
                         "notif_id" => (string) $notif->notif_id
                     ]
+=======
+        // DATA PENTING UNTUK ANDROID
+        $payload = [
+            "message" => [
+                "token" => $token,
+                "data" => [
+                    "title" => $notif->title,
+                    "body" => $notif->message,
+                    "type" => $notif->type,
+                    "related_id" => (string) $notif->related_id,
+                    "notif_id" => (string) $notif->notif_id
+>>>>>>> 9af360746113143840e4876874acf83933dad007
                 ]
             ];
 
             \Log::info("FCM_PAYLOAD", $payload);
 
+<<<<<<< HEAD
             $headers = [
                 "Authorization: Bearer {$accessToken}",
                 "Content-Type: application/json"
@@ -271,5 +304,19 @@ class NotifikasiController extends Controller
             
             return false;
         }
+=======
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POSTFIELDS => json_encode($payload)
+        ]);
+
+        $response = curl_exec($ch);
+        \Log::info("FCM_HTTP_V1", ['response' => $response]);
+        curl_close($ch);
+>>>>>>> 9af360746113143840e4876874acf83933dad007
     }
 }
