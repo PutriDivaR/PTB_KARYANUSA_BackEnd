@@ -61,4 +61,3 @@ Route::get('/materi/{kursus_id}', [AdminKursusController::class, 'apiMateri']);
 // galeri public
 Route::get('/karya', [KaryaController::class, 'index']);
 Route::post('/karya/{id}/view', [KaryaController::class, 'incrementView']);
-
