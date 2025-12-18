@@ -49,11 +49,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifikasi/send', [NotifikasiController::class, 'sendNotification']);
     Route::post('/users/fcm-token', [AuthController::class, 'updateFcmToken']);
 
-<<<<<<< HEAD
     Route::post('/karya/{galeri_id}/like', [LikeController::class, 'toggleLike']);
     Route::get('/karya/{galeri_id}/check-like', [LikeController::class, 'checkLike']);
-=======
->>>>>>> 9af360746113143840e4876874acf83933dad007
 });
 
 // KURSUS
