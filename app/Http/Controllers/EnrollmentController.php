@@ -174,4 +174,31 @@ public function updateStatus(Request $request)
         $enrollment->save();
     }
 
+    public function destroy($kursus_id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $enrollment = Enrollment::where('user_id', $user->user_id)
+            ->where('kursus_id', $kursus_id)
+            ->first();
+
+        if (!$enrollment) {
+            return response()->json(['message' => 'Enrollment tidak ditemukan'], 404);
+        }
+
+        // Hapus progress materi dulu
+        ProgressMateri::where('enrollment_id', $enrollment->enrollment_id)->delete();
+
+        // Hapus enrollment
+        $enrollment->delete();
+
+        return response()->json([
+            'message' => 'Enrollment berhasil dibatalkan'
+        ], 200);
+    }
+
+
 }

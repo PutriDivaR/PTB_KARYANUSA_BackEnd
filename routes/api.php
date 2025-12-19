@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/enrollments', [EnrollmentController::class, 'index']);
     Route::post('/enroll', [EnrollmentController::class, 'store']);
     Route::get('/check-enrollment/{kursus_id}', [EnrollmentController::class, 'checkEnrollment']);
+    Route::delete('/delete-enrollment/{kursus_id}', [EnrollmentController::class, 'destroy']);
     Route::post('/materi/complete', [EnrollmentController::class, 'tandaiMateriSelesai']);
     Route::get('/materi/{enrollmentId}/{materiId}/is-completed', [EnrollmentController::class, 'cekMateriSelesai']);
 

@@ -192,7 +192,7 @@ class NotifikasiController extends Controller
                 'token_preview' => substr($token, 0, 30) . '...'
             ]);
 
-            $credentialsPath = storage_path('app/firebase-service-account.json');
+            $credentialsPath = storage_path('app/firebase-service-account..json');
 
             if (!file_exists($credentialsPath)) {
                 \Log::error("FCM_CREDENTIALS_NOT_FOUND", [
@@ -219,10 +219,7 @@ class NotifikasiController extends Controller
             $payload = [
                 "message" => [
                     "token" => $token,
-                    "notification" => [
-                        "title" => $notif->title,
-                        "body" => $notif->message
-                    ],
+
                     "data" => [
                         "title" => $notif->title,
                         "body" => $notif->message,
