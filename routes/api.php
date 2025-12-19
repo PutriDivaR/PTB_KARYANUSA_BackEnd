@@ -50,10 +50,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifikasi/send', [NotifikasiController::class, 'sendNotification']);
     Route::post('/users/fcm-token', [AuthController::class, 'updateFcmToken']);
 
-
     Route::post('/karya/{galeri_id}/like', [LikeController::class, 'toggleLike']);
     Route::get('/karya/{galeri_id}/check-like', [LikeController::class, 'checkLike']);
-
 });
 
 // KURSUS
@@ -64,4 +62,3 @@ Route::get('/materi/{kursus_id}', [AdminKursusController::class, 'apiMateri']);
 // galeri public
 Route::get('/karya', [KaryaController::class, 'index']);
 Route::post('/karya/{id}/view', [KaryaController::class, 'incrementView']);
-
