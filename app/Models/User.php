@@ -20,6 +20,8 @@ class User extends Authenticatable
         'nama',
         'username',
         'password',
+        'bio',
+        'foto_profile',
         'fcm_token'
     ];
 

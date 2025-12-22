@@ -42,6 +42,8 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/profile/{id}', [ProfileController::class, 'show']);
     Route::put('/profile/{id}', [ProfileController::class, 'update']);
+    Route::post('/profile/{id}/update-photo', [ProfileController::class, 'updatePhoto']); // ✅ Tambah ini
+
     Route::get('/users', [AuthController::class, 'getAllUsers']);
 
     Route::get('/notifikasi', [NotifikasiController::class, 'getUserNotif']);

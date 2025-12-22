@@ -50,3 +50,7 @@ Route::get('/video/{filename}', function ($filename) {
     $mime = mime_content_type($path);
     return Response::file($path, ['Content-Type' => $mime]);
 });
+
+Route::get('/phpinfo', function () {
+    phpinfo();
+});
