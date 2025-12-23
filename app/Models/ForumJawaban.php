@@ -10,16 +10,16 @@ class ForumJawaban extends Model
     protected $fillable = [
         'user_id',
         'pertanyaan_id',
-        'image_jawaban', // tambahkan ini
+        'image_jawaban',
         'isi',
         'tanggal'
     ];
-    // Relasi ke pertanyaan
+   
     public function pertanyaan()
     {
         return $this->belongsTo(ForumPertanyaan::class, 'pertanyaan_id', 'pertanyaan_id');
     }
-    // Relasi ke user (ambil nama & username)
+    
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');

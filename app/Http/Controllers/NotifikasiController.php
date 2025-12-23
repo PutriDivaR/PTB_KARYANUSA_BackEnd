@@ -9,9 +9,7 @@ use Google\Client;
 
 class NotifikasiController extends Controller
 {
-    // ================================
-    // 1️⃣ KIRIM NOTIFIKASI (dari user ke user)
-    // ================================
+
     public function sendNotification(Request $request)
     {
         $request->validate([
@@ -24,7 +22,7 @@ class NotifikasiController extends Controller
         ]);
 
         try {
-            // Simpan ke database
+            
             $notif = Notifikasi::create([
                 'from_user' => $request->from_user,
                 'to_user' => $request->to_user,
@@ -41,7 +39,7 @@ class NotifikasiController extends Controller
                 'to_user' => $notif->to_user
             ]);
 
-            // Kirim FCM
+            
             $toUser = User::find($request->to_user);
 
             if ($toUser && $toUser->fcm_token) {
@@ -80,10 +78,7 @@ class NotifikasiController extends Controller
         }
     }
 
-    // ================================
-    // ✅ KIRIM NOTIFIKASI SISTEM
-    // ⚠️ PERBAIKAN: Tambah parameter fromUser
-    // ================================
+
     public function sendSystemNotification($fromUser, $toUser, $type, $title, $message, $relatedId = null)
     {
         try {
@@ -94,9 +89,9 @@ class NotifikasiController extends Controller
                 'title' => $title
             ]);
 
-            // ✅ Simpan ke database dengan from_user yang valid
+            
             $notif = Notifikasi::create([
-                'from_user' => $fromUser, // ✅ PERBAIKAN: gunakan user_id yang valid
+                'from_user' => $fromUser,
                 'to_user' => $toUser,
                 'type' => $type,
                 'title' => $title,
@@ -111,7 +106,7 @@ class NotifikasiController extends Controller
                 'to_user' => $toUser
             ]);
 
-            // Kirim FCM
+           
             $user = User::find($toUser);
 
             if ($user && $user->fcm_token) {
@@ -144,9 +139,7 @@ class NotifikasiController extends Controller
         }
     }
 
-    // ================================
-    // 2️⃣ AMBIL NOTIFIKASI USER LOGIN
-    // ================================
+
     public function getUserNotif(Request $request)
     {
         $user = $request->user();
@@ -162,9 +155,7 @@ class NotifikasiController extends Controller
         return response()->json($notif);
     }
 
-    // ================================
-    // 3️⃣ MARK NOTIFIKASI SEBAGAI READ
-    // ================================
+
     public function markRead(Request $request, $id)
     {
         $user = $request->user();
@@ -181,9 +172,7 @@ class NotifikasiController extends Controller
         ]);
     }
 
-    // ================================
-    // 4️⃣ FCM SENDER
-    // ================================
+
     private function sendFCM($token, Notifikasi $notif)
     {
         try {
@@ -192,7 +181,7 @@ class NotifikasiController extends Controller
                 'token_preview' => substr($token, 0, 30) . '...'
             ]);
 
-            $credentialsPath = storage_path('app/firebase-service-account.json');
+            $credentialsPath = storage_path('app/firebase-service-account..json');
 
             if (!file_exists($credentialsPath)) {
                 \Log::error("FCM_CREDENTIALS_NOT_FOUND", [
@@ -215,7 +204,7 @@ class NotifikasiController extends Controller
 
             $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
 
-            // DATA PENTING UNTUK ANDROID
+            
             $payload = [
                 "message" => [
                     "token" => $token,

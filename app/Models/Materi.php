@@ -18,7 +18,7 @@ class Materi extends Model
         'video'
     ];
 
-    // Relasi ke Kursus
+   
     public function kursus()
     {
         return $this->belongsTo(Kursus::class, 'kursus_id');

@@ -16,7 +16,6 @@ class KaryaController extends Controller
         $this->notif = $notif;
     }
 
-    // ✅ Upload Karya
     public function store(Request $request)
     {
         $request->validate([
@@ -45,7 +44,6 @@ class KaryaController extends Controller
         ]);
     }
 
-    // ✅ Get Semua Karya
     public function index()
     {
         $data = DB::table('galeri')
@@ -60,7 +58,6 @@ class KaryaController extends Controller
         ]);
     }
 
-    // ✅ Get Karya Pribadi
     public function my(Request $request)
     {
         $user = $request->user();
@@ -76,7 +73,6 @@ class KaryaController extends Controller
         ]);
     }
 
-    // ✅ Delete Karya
     public function destroy(Request $request, $id)
     {
         $user = $request->user();
@@ -105,7 +101,6 @@ class KaryaController extends Controller
         ]);
     }
 
-    // ✅ Update Karya
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -141,9 +136,6 @@ class KaryaController extends Controller
         ]);
     }
 
-    /**
-     * ✅ Increment View dengan Notifikasi Milestone
-     */
     public function incrementView($id)
     {
         \Log::info("🔥 INCREMENT VIEW START", [
@@ -164,7 +156,6 @@ class KaryaController extends Controller
 
             $oldViews = $karya->views ?? 0;
 
-            // ✅ Increment views
             DB::table('galeri')
                 ->where('galeri_id', $id)
                 ->update([
@@ -181,7 +172,6 @@ class KaryaController extends Controller
                 'user_id' => $karya->user_id
             ]);
 
-            // ✅ Milestone check
             $milestones = [5, 10, 25, 50, 100, 250, 500, 1000];
             
             $message = 'View berhasil ditambahkan';
@@ -198,10 +188,8 @@ class KaryaController extends Controller
                     'owner_user_id' => $karya->user_id
                 ]);
                 
-                // 🔥 KIRIM NOTIFIKASI VIA NotifikasiController
-                // ⚠️ GUNAKAN user_id KARYA SEBAGAI from_user (bukan 0/null)
                 $result = $this->notif->sendSystemNotification(
-                    fromUser: $karya->user_id, // ✅ PERBAIKAN: gunakan owner karya
+                    fromUser: $karya->user_id, 
                     toUser: $karya->user_id,
                     type: 'view_milestone',
                     title: '🎉 Karya Anda Populer!',

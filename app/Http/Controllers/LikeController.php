@@ -13,19 +13,17 @@ class LikeController extends Controller
 
     public function __construct()
     {
-        // Inisialisasi NotifikasiController
+        
         $this->notifController = new NotifikasiController();
     }
 
-    /**
-     * Toggle Like (Like/Unlike) & kirim notifikasi FCM
-     */
+
     public function toggleLike(Request $request, $galeriId)
     {
         try {
             $user = $request->user();
 
-            // Cek karya
+            
             $karya = DB::table('galeri')->where('galeri_id', $galeriId)->first();
             if (!$karya) {
                 return response()->json([
@@ -34,13 +32,13 @@ class LikeController extends Controller
                 ], 404);
             }
 
-            // Cek apakah user sudah like
+           
             $existingLike = Like::where('user_id', $user->user_id)
                 ->where('galeri_id', $galeriId)
                 ->first();
 
             if ($existingLike) {
-                // UNLIKE
+               
                 $existingLike->delete();
                 DB::table('galeri')->where('galeri_id', $galeriId)->decrement('likes');
                 $newLikesCount = DB::table('galeri')->where('galeri_id', $galeriId)->value('likes');
@@ -53,7 +51,7 @@ class LikeController extends Controller
                     'is_liked' => false
                 ]);
             } else {
-                // LIKE
+               
                 Like::create([
                     'user_id' => $user->user_id,
                     'galeri_id' => $galeriId
@@ -61,7 +59,7 @@ class LikeController extends Controller
                 DB::table('galeri')->where('galeri_id', $galeriId)->increment('likes');
                 $newLikesCount = DB::table('galeri')->where('galeri_id', $galeriId)->value('likes');
 
-                // Kirim notifikasi FCM jika bukan like sendiri
+               
                 if ($user->user_id != $karya->user_id) {
                     $notifRequest = new Request([
                         'from_user' => intval($user->user_id),
@@ -97,9 +95,6 @@ class LikeController extends Controller
         }
     }
 
-    /**
-     * Cek apakah user sudah like karya
-     */
     public function checkLike(Request $request, $galeriId)
     {
         try {

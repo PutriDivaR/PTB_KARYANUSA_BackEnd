@@ -19,13 +19,12 @@ class Enrollment extends Model
         'status',
     ];
 
-    // Relasi ke user
+  
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Relasi ke kursus
     public function kursus()
     {
         return $this->belongsTo(Kursus::class, 'kursus_id');

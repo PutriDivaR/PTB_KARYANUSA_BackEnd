@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class ForumPertanyaanController extends Controller
 {
-    // 🔹 1. Ambil semua pertanyaan + jawaban
+
     public function index()
     {
         try {
@@ -153,7 +153,7 @@ class ForumPertanyaanController extends Controller
         }
     }
 
-    // 🔹 3. Detail pertanyaan + jawaban
+  
     public function show($id)
     {
         try {
@@ -176,7 +176,7 @@ class ForumPertanyaanController extends Controller
         }
     }
 
-    // 🔹 4. Tambah jawaban untuk sebuah pertanyaan
+   
     public function jawaban(Request $request, $id)
     {
         try {
@@ -219,7 +219,6 @@ class ForumPertanyaanController extends Controller
 
             $jawaban->load('user');
 
-            // ✅ KIRIM NOTIFIKASI KE PEMILIK PERTANYAAN
             $notificationSent = false;
             if ($pertanyaan->user_id !== $userId) {
                 try {
@@ -227,12 +226,12 @@ class ForumPertanyaanController extends Controller
                     $currentUser = auth()->user();
                     
                     $notificationSent = $notifController->sendSystemNotification(
-                        $userId, // from_user: yang membalas
-                        $pertanyaan->user_id, // to_user: pemilik pertanyaan
-                        'reply_forum', // type
-                        '💬 Balasan Baru di Forum', // title
-                        $currentUser->nama . ' membalas pertanyaan Anda: "' . \Illuminate\Support\Str::limit($pertanyaan->isi, 50) . '"', // message
-                        $pertanyaan->pertanyaan_id // related_id
+                        $userId,
+                        $pertanyaan->user_id, 
+                        'reply_forum', 
+                        '💬 Balasan Baru di Forum',
+                        $currentUser->nama . ' membalas pertanyaan Anda: "' . \Illuminate\Support\Str::limit($pertanyaan->isi, 50) . '"', 
+                        $pertanyaan->pertanyaan_id 
                     );
                     
                     Log::info('✅ Notifikasi balasan forum terkirim', [
@@ -242,12 +241,10 @@ class ForumPertanyaanController extends Controller
                         'success' => $notificationSent
                     ]);
                 } catch (\Exception $e) {
-                    // Jangan gagalkan proses jawaban kalau notifikasi error
                     Log::error('⚠️ Gagal kirim notifikasi balasan: ' . $e->getMessage());
                 }
             }
 
-            // ✅ RETURN DENGAN INFO NOTIFIKASI
             return response()->json([
                 'jawaban_id' => $jawaban->jawaban_id,
                 'pertanyaan_id' => $jawaban->pertanyaan_id,
@@ -274,7 +271,7 @@ class ForumPertanyaanController extends Controller
         }
     }
 
-    // 🔥 UPDATE PERTANYAAN - FIXED VERSION
+    // update pertanyaan
     public function update(Request $request, $id)
     {
         try {
@@ -294,26 +291,23 @@ class ForumPertanyaanController extends Controller
                 ], 403);
             }
             
-            // Validasi input
+           
             $validated = $request->validate([
                 'isi' => 'required|string|max:2000',
                 'image_forum' => 'nullable|array|max:4',
                 'image_forum.*' => 'nullable|image|mimes:jpeg,png,jpg|max:10240',
-                'keep_images' => 'nullable|array', // ✅ Array URL gambar yang mau dipertahankan
+                'keep_images' => 'nullable|array',
                 'keep_images.*' => 'nullable|string'
             ]);
             
-            // Update isi pertanyaan
+           
             $pertanyaan->isi = $validated['isi'];
             
-            // ✅ LOGIKA BARU: Gabungkan gambar lama yang dipertahankan + gambar baru
             $finalImages = [];
             
-            // 1️⃣ Ambil gambar lama yang mau dipertahankan
             $keepImages = $request->input('keep_images', []);
             if (!empty($keepImages) && is_array($keepImages)) {
                 foreach ($keepImages as $oldImage) {
-                    // Validasi bahwa gambar ini memang milik pertanyaan ini
                     if ($pertanyaan->image_forum && in_array($oldImage, $pertanyaan->image_forum)) {
                         $finalImages[] = $oldImage;
                         Log::info('✓ Gambar lama dipertahankan: ' . $oldImage);
@@ -321,7 +315,6 @@ class ForumPertanyaanController extends Controller
                 }
             }
             
-            // 2️⃣ Upload gambar baru jika ada
             if ($request->hasFile('image_forum')) {
                 Log::info('Gambar baru terdeteksi, memproses upload...');
                 
@@ -337,7 +330,6 @@ class ForumPertanyaanController extends Controller
                 }
                 
                 foreach ($files as $index => $file) {
-                    // Cek total gambar tidak melebihi 4
                     if (count($finalImages) >= 4) {
                         Log::warning('Maksimal 4 gambar tercapai, file berikutnya diabaikan');
                         break;
@@ -363,7 +355,6 @@ class ForumPertanyaanController extends Controller
                 }
             }
             
-            // 3️⃣ Hapus gambar lama yang TIDAK ada di keep_images dan TIDAK ada di finalImages
             if ($pertanyaan->image_forum && is_array($pertanyaan->image_forum)) {
                 foreach ($pertanyaan->image_forum as $oldImage) {
                     if (!in_array($oldImage, $finalImages)) {
@@ -376,7 +367,6 @@ class ForumPertanyaanController extends Controller
                 }
             }
             
-            // 4️⃣ Simpan array gambar final
             $pertanyaan->image_forum = !empty($finalImages) ? $finalImages : null;
             
             $pertanyaan->save();
@@ -407,7 +397,7 @@ class ForumPertanyaanController extends Controller
         }
     }
 
-    // 🔥 6. DELETE Pertanyaan (SUPPORT MULTIPLE IMAGES)
+    
     public function destroy($id)
     {
         try {
@@ -422,7 +412,6 @@ class ForumPertanyaanController extends Controller
                 ], 403);
             }
             
-            // ✅ Hapus multiple gambar pertanyaan jika ada
             if ($pertanyaan->image_forum && is_array($pertanyaan->image_forum)) {
                 foreach ($pertanyaan->image_forum as $image) {
                     $imagePath = str_replace(url('/'), public_path(), $image);
@@ -433,7 +422,6 @@ class ForumPertanyaanController extends Controller
                 }
             }
             
-            // Hapus gambar jawaban jika ada
             foreach ($pertanyaan->jawaban as $jawaban) {
                 if ($jawaban->image_jawaban) {
                     $jawabanImagePath = str_replace(url('/'), public_path(), $jawaban->image_jawaban);

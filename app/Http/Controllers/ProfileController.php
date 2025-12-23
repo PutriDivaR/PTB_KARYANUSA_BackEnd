@@ -10,9 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
-    /**
-     * 🔹 GET /api/profile/{id}
-     */
+
     public function show($id)
     {
         try {
@@ -47,10 +45,7 @@ class ProfileController extends Controller
         }
     }
     
-    /**
-     * 🔹 POST /api/profile/{id}/update-photo
-     * Upload foto profil dengan Multipart
-     */
+
     public function updatePhoto(Request $request, $id)
     {
         try {
@@ -63,7 +58,6 @@ class ProfileController extends Controller
                 ], 404);
             }
 
-            // 🔒 Validasi user yang login
             $authUser = Auth::user();
             if ($authUser && $authUser->user_id !== $user->user_id) {
                 return response()->json([
@@ -72,22 +66,21 @@ class ProfileController extends Controller
                 ], 403);
             }
 
-            // ✅ Validasi file
             $request->validate([
                 'foto_profile' => 'required|image|mimes:jpeg,png,jpg|max:5120', // max 5MB
             ]);
 
-            // 🗑️ Hapus foto lama jika ada
+      
             if ($user->foto_profile && Storage::exists('public/' . $user->foto_profile)) {
                 Storage::delete('public/' . $user->foto_profile);
             }
 
-            // 📸 Upload foto baru
+          
             $file = $request->file('foto_profile');
             $filename = 'profile_' . $user->user_id . '_' . time() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('profile_photos', $filename, 'public');
 
-            // 💾 Simpan path ke database
+        
             $user->foto_profile = $path;
             $user->save();
 
@@ -122,10 +115,7 @@ class ProfileController extends Controller
         }
     }
 
-    /**
-     * 🔹 PUT /api/profile/{id}
-     * Update profile (nama dan bio saja)
-     */
+
     public function update(Request $request, $id)
     {
         try {

@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 class AdminKursusController extends Controller
 {
-    // ini API json untuk Android – tampilkan semua kursus
+    
     public function apiIndex()
     {
         $kursus = Kursus::all();
@@ -26,7 +26,7 @@ class AdminKursusController extends Controller
     }
 
 
-    // ini API json untuk Android – tampilkan detail kursus by ID
+    
     public function apiShow($id)
     {
         $kursus = Kursus::find($id);
@@ -83,7 +83,7 @@ class AdminKursusController extends Controller
             $extension = $file->getClientOriginalExtension();
             $filename = time() . '_' . Str::slug($originalName) . '.' . $extension;
 
-            // Simpan file ke storage/app/public/thumbnails dan 
+            
             $file->move(storage_path('app/public/thumbnails'), $filename);
 
             
@@ -92,7 +92,7 @@ class AdminKursusController extends Controller
 
          $kursus = Kursus::create($data);
 
-    // Simpan Video Materi
+ 
     if ($request->has('materi')) {
         foreach ($request->materi as $index => $materiData) {
             $videoName = null;
@@ -102,10 +102,10 @@ class AdminKursusController extends Controller
                 $video = $request->file("materi.$index.video");
                 $videoName = time().'_'.Str::slug(pathinfo($video->getClientOriginalName(), PATHINFO_FILENAME)).'.'.$video->getClientOriginalExtension();
                 
-                // Simpan video di folder videos
+               
                 $video->move(storage_path('app/public/videos'), $videoName);
 
-                // Hitung durasi video pakai getID3 (yg belum bisa ndeh)
+                
                 $analyzer = new getID3();
                 $info = $analyzer->analyze(storage_path('app/public/videos/'.$videoName));
                 $durasi = isset($info['playtime_seconds']) ? round($info['playtime_seconds'] / 60) : 0;
@@ -125,14 +125,14 @@ class AdminKursusController extends Controller
         return redirect('/admin/kursus')->with('success', 'Kursus berhasil ditambahkan!');
     }
 
-    // Form edit kursus
+    
     public function edit($id)
     {
         $kursus = Kursus::findOrFail($id);
         return view('kursus.edit', compact('kursus'));
     }
 
-    // Update kursus
+   
     public function update(Request $request, $id)
     {
         $kursus = Kursus::findOrFail($id);
@@ -147,7 +147,7 @@ class AdminKursusController extends Controller
         $data = $request->only(['judul', 'deskripsi', 'pengrajin_nama']);
 
     if ($request->hasFile('thumbnail')) {
-        // Hapus file lama 
+         
         if ($kursus->thumbnail && Storage::exists('public/thumbnails/' . $kursus->thumbnail)) {
             Storage::delete('public/thumbnails/' . $kursus->thumbnail);
         }
@@ -158,7 +158,7 @@ class AdminKursusController extends Controller
         $extension = $file->getClientOriginalExtension();
         $filename = time() . '_' . Str::slug($originalName) . '.' . $extension;
 
-        // Pindahkan n simpan lagi ke folder thumbnails
+        
         $file->move(storage_path('app/public/thumbnails'), $filename);
 
         $data['thumbnail'] = $filename;
@@ -168,13 +168,13 @@ class AdminKursusController extends Controller
 
         $kursus->update($data);
     
-    // Update Materi Lama
+    
     if ($request->has('materi_lama')) {
         foreach ($request->materi_lama as $materiId => $materiData) {
             $materi = Materi::find($materiId);
             if (!$materi) continue;
 
-            // hapus video lama
+            
             if ($request->hasFile("materi_lama.$materiId.video")) {
                 $video = $request->file("materi_lama.$materiId.video");
                 $videoName = time().'_'.Str::slug(pathinfo($video->getClientOriginalName(), PATHINFO_FILENAME)).'.'.$video->getClientOriginalExtension();
@@ -184,7 +184,7 @@ class AdminKursusController extends Controller
                     Storage::delete('public/videos/'.$materi->video);
                 }
 
-                // Hitung ulang durasi
+                
                 $analyzer = new getID3();
                 $info = $analyzer->analyze(storage_path('app/public/videos/'.$videoName));
                 $durasi = isset($info['playtime_seconds']) ? round($info['playtime_seconds'] / 60) : 0;
@@ -200,7 +200,7 @@ class AdminKursusController extends Controller
         }
     }
 
-    // Hapus Materi 
+    
     if ($request->has('hapus_materi')) {
         foreach ($request->hapus_materi as $materiId) {
             $materi = Materi::find($materiId);
@@ -213,7 +213,7 @@ class AdminKursusController extends Controller
         }
     }
 
-    // Tambah Materi Baru
+    
     if ($request->has('materi_baru')) {
         foreach ($request->materi_baru as $materiData) {
             $videoName = null;
@@ -242,7 +242,7 @@ class AdminKursusController extends Controller
         return redirect('/admin/kursus')->with('success', 'Kursus berhasil diperbarui!');
     }
 
-    // Hapus kursus
+ 
     public function destroy($id)
     {
         $kursus = Kursus::findOrFail($id);

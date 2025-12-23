@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class EnrollmentController extends Controller
 {
-    // Menampilkan semua kursus yang user ikuti
+
     public function index()
     {
         $user = Auth::user();
@@ -26,7 +26,7 @@ class EnrollmentController extends Controller
         return response()->json($enrollments, 200);
     }
 
-    // Enroll ke kursus tertentu
+ 
     public function store(Request $request)
     {
         $user = Auth::user();
@@ -35,12 +35,12 @@ class EnrollmentController extends Controller
             return response()->json(['message' => 'User tidak terautentikasi.'], 401);
         }
 
-        // Validasi input
+        
         $request->validate([
             'kursus_id' => 'required|integer|exists:kursus,kursus_id',
         ]);
 
-        // Cegah double enroll
+        
         $exists = Enrollment::where('user_id', $user->user_id)
             ->where('kursus_id', $request->kursus_id)
             ->exists();
@@ -49,7 +49,7 @@ class EnrollmentController extends Controller
             return response()->json(['message' => 'Sudah terdaftar di kursus ini.'], 400);
         }
 
-        // Buat data enrollment baru
+        
         $enroll = Enrollment::create([
             'user_id'   => $user->user_id,  
             'kursus_id' => $request->kursus_id,
@@ -63,7 +63,7 @@ class EnrollmentController extends Controller
         ], 201);
     }
 
-// Update progress & status kursus
+
 public function updateStatus(Request $request)
 {
     $request->validate([
@@ -118,7 +118,6 @@ public function updateStatus(Request $request)
     }
 
 
-    // FUNGSI STATUS PROGRESS VIDEO MATERI
     public function tandaiMateriSelesai(Request $request)
     {
         $request->validate([
@@ -189,10 +188,10 @@ public function updateStatus(Request $request)
             return response()->json(['message' => 'Enrollment tidak ditemukan'], 404);
         }
 
-        // Hapus progress materi dulu
+        
         ProgressMateri::where('enrollment_id', $enrollment->enrollment_id)->delete();
 
-        // Hapus enrollment
+        
         $enrollment->delete();
 
         return response()->json([
